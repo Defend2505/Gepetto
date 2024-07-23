@@ -55,8 +55,10 @@ class ExplainHandler(idaapi.action_handler_t):
         decompiler_output = ida_hexrays.decompile(idaapi.get_screen_ea())
         v = ida_hexrays.get_widget_vdui(ctx.widget)
         gepetto.config.model.query_model_async(
-            _("Can you explain what the following C function does and suggest a better name for "
-              "it?\n{decompiler_output}").format(decompiler_output=str(decompiler_output)),
+            _("""You are the Senior Reverse Engineer. Analyze the following pceudocode function, it`s IDA decompiler output
+            Explain what the following pceudocode function does. 
+            Suggest a better name for function in end, use format 'better_name: <your_suggested_name>'\n{decompiler_output}.\n
+            Translate your answer to Russian except suggested name and IT terms. Don`t use Markdown""").format(decompiler_output=str(decompiler_output)),
             functools.partial(comment_callback, address=idaapi.get_screen_ea(), view=v))
         return 1
 
@@ -121,7 +123,7 @@ class RenameHandler(idaapi.action_handler_t):
         decompiler_output = ida_hexrays.decompile(idaapi.get_screen_ea())
         v = ida_hexrays.get_widget_vdui(ctx.widget)
         gepetto.config.model.query_model_async(
-            _("Analyze the following C function:\n{decompiler_output}"
+            _("You are the Senior Reverse Engineer. Analyze the following pceudocode function, it`s IDA decompiler output:\n{decompiler_output}"
               "\nSuggest better variable names, reply with a JSON array where keys are the original"
               " names and values are the proposed names. Do not explain anything, only print the "
               "JSON dictionary.").format(decompiler_output=str(decompiler_output)),

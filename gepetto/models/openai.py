@@ -47,9 +47,7 @@ class GPT(LanguageModel):
             additional_model_options = {}
 
         if self.model == 'gemini-1.5-flash':
-            if additional_model_options is None:
-                additional_model_options = {}
-            else:
+            if len(additional_model_options) > 0:
                 additional_model_options = {"generation_config" : {"response_mime_type": "application/json"}}
             try:
                 response = self.client.generate_content(query, **additional_model_options)
