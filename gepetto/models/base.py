@@ -5,6 +5,7 @@ GPT4_MODEL_NAME = "gpt-4-turbo"
 GPT4o_MODEL_NAME = "gpt-4o"
 GROQ_MODEL_NAME = "llama3-70b-8192"
 MISTRAL_MODEL_NAME = "mistralai/Mixtral-8x22B-Instruct-v0.1"
+GOOGLE_GEMINI = "gemini-1.5-flash"
 
 
 class LanguageModel(abc.ABC):
@@ -28,6 +29,9 @@ def get_model(model):
     elif model == MISTRAL_MODEL_NAME:
         from gepetto.models.together import Together
         return Together(model)
+    elif model == GOOGLE_GEMINI:
+        from gepetto.models.gemini import Gemini
+        return Gemini(model)
     else:
         print(f"Warning:  {model} does not exist! Using default model ({GPT4o_MODEL_NAME}).")
         from gepetto.models.openai import GPT

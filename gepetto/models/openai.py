@@ -45,27 +45,40 @@ class GPT(LanguageModel):
         """
         if additional_model_options is None:
             additional_model_options = {}
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "user", "content": query}
-                ],
-                **additional_model_options
-            )
-            ida_kernwin.execute_sync(functools.partial(cb, response=response.choices[0].message.content),
-                                     ida_kernwin.MFF_WRITE)
-        except openai.BadRequestError as e:
-            # Context length exceeded. Determine the max number of tokens we can ask for and retry.
-            m = re.search(r'maximum context length is \d+ tokens, however you requested \d+ tokens', str(e))
-            if m:
-                print(_("Unfortunately, this function is too big to be analyzed with the model's current API limits."))
+
+        if self.model == 'gemini-1.5-flash':
+            if additional_model_options is None:
+                additional_model_options = {}
             else:
+                additional_model_options = {"generation_config" : {"response_mime_type": "application/json"}}
+            try:
+                response = self.client.generate_content(query, **additional_model_options)
+                ida_kernwin.execute_sync(functools.partial(cb, response=response.text),
+                                         ida_kernwin.MFF_WRITE)
+            except Exception as e:
                 print(_("General exception encountered while running the query: {error}").format(error=str(e)))
-        except openai.OpenAIError as e:
-            print(_("{model} could not complete the request: {error}").format(model=self.model, error=str(e)))
-        except Exception as e:
-            print(_("General exception encountered while running the query: {error}").format(error=str(e)))
+        else:
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "user", "content": query}
+                    ],
+                    **additional_model_options
+                )
+                ida_kernwin.execute_sync(functools.partial(cb, response=response.choices[0].message.content),
+                                     ida_kernwin.MFF_WRITE)
+            except openai.BadRequestError as e:
+            # Context length exceeded. Determine the max number of tokens we can ask for and retry.
+                m = re.search(r'maximum context length is \d+ tokens, however you requested \d+ tokens', str(e))
+                if m:
+                    print(_("Unfortunately, this function is too big to be analyzed with the model's current API limits."))
+                else:
+                    print(_("General exception encountered while running the query: {error}").format(error=str(e)))
+            except openai.OpenAIError as e:
+                print(_("{model} could not complete the request: {error}").format(model=self.model, error=str(e)))
+            except Exception as e:
+                print(_("General exception encountered while running the query: {error}").format(error=str(e)))
 
     # -----------------------------------------------------------------------------
 
